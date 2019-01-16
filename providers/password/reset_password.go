@@ -35,6 +35,7 @@ var DefaultResetPasswordMailer = func(email string, context *auth.Context, claim
 	return context.Auth.Mailer.Send(
 		mailer.Email{
 			TO:      []mail.Address{{Address: email}},
+			From:    &mail.Address{Address: "admin@example.org"},
 			Subject: ResetPasswordMailSubject,
 		}, mailer.Template{
 			Name:    "auth/reset_password",

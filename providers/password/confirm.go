@@ -40,6 +40,7 @@ var DefaultConfirmationMailer = func(email string, context *auth.Context, claims
 	return context.Auth.Mailer.Send(
 		mailer.Email{
 			TO:      []mail.Address{{Address: email}},
+			From:    &mail.Address{Address: "admin@example.org"},
 			Subject: ConfirmationMailSubject,
 		}, mailer.Template{
 			Name:    "auth/confirmation",
@@ -86,7 +87,7 @@ var DefaultConfirmHandler = func(context *auth.Context) error {
 				if authInfo.ConfirmedAt == nil {
 					now := time.Now()
 					authInfo.ConfirmedAt = &now
-					if err = tx.Model(authIdentity).Update(authInfo).Error; err == nil {
+					if err = tx.Model(authIdentity).Where(authInfo).Update(authInfo).Error; err == nil {
 						context.SessionStorer.Flash(context.Writer, context.Request, session.Message{Message: ConfirmedAccountFlashMessage, Type: "success"})
 						context.Auth.Redirector.Redirect(context.Writer, context.Request, "confirm")
 						return nil
