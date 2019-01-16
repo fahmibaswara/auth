@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
+	"github.com/fahmibaswara/auth"
+	"github.com/fahmibaswara/auth/auth_identity"
+	"github.com/fahmibaswara/auth/claims"
 	"github.com/qor/qor/utils"
 	"github.com/qor/session"
 )
@@ -48,7 +48,7 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 		err         error
 		currentUser interface{}
 		schema      auth.Schema
-		authInfo    auth_identity.Basic
+		authInfo    auth_identity.AuthIdentity
 		req         = context.Request
 		tx          = context.Auth.GetDB(req)
 		provider, _ = context.Provider.(*Provider)

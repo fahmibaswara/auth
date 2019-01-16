@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/fahmibaswara/auth"
+	"github.com/fahmibaswara/auth/auth_identity"
+	"github.com/fahmibaswara/auth/claims"
 	"github.com/google/go-github/github"
-	"github.com/qor/auth"
-	"github.com/qor/auth/auth_identity"
-	"github.com/qor/auth/claims"
 	"github.com/qor/qor/utils"
 	"golang.org/x/oauth2"
 )
