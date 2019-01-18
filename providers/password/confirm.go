@@ -79,7 +79,10 @@ var DefaultConfirmHandler = func(context *auth.Context) error {
 			authInfo.UID = claims.Id
 			authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
 
-			if tx.Where(authInfo).First(authIdentity).RecordNotFound() {
+			if tx.Where(map[string]interface{}{
+				"provider": authInfo.Provider,
+				"uid":      authInfo.UID,
+			}).First(authIdentity).RecordNotFound() {
 				err = auth.ErrInvalidAccount
 			}
 
@@ -87,7 +90,10 @@ var DefaultConfirmHandler = func(context *auth.Context) error {
 				if authInfo.ConfirmedAt == nil {
 					now := time.Now()
 					authInfo.ConfirmedAt = &now
-					if err = tx.Model(authIdentity).Where(authInfo).Update(authInfo).Error; err == nil {
+					if err = tx.Model(authIdentity).Where(map[string]interface{}{
+						"provider": authInfo.Provider,
+						"uid":      authInfo.UID,
+					}).Update(authInfo).Error; err == nil {
 						context.SessionStorer.Flash(context.Writer, context.Request, session.Message{Message: ConfirmedAccountFlashMessage, Type: "success"})
 						context.Auth.Redirector.Redirect(context.Writer, context.Request, "confirm")
 						return nil
