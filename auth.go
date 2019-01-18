@@ -23,6 +23,11 @@ type Auth struct {
 	providers []Provider
 }
 
+// SMSSender Interface
+type SMSSender interface {
+	Send(destination string, content string) error
+}
+
 // Config auth config
 type Config struct {
 	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value, refer https://github.com/fahmibaswara/auth/blob/master/utils.go#L32
@@ -40,6 +45,8 @@ type Config struct {
 	Render *render.Render
 	// Auth is using [Mailer](https://github.com/qor/mailer) to send email, by default, it will print email into console, you need to configure it to send real one
 	Mailer *mailer.Mailer
+	// SMS Sender, by default, it will print email into console, you need to configure it to send real one
+	SMSSender SMSSender
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer UserStorerInterface
 	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data and flash messages between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly. refer [session](https://github.com/qor/session) for more details

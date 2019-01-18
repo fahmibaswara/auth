@@ -1,40 +1,105 @@
 package phone
 
-import "github.com/fahmibaswara/auth"
+import (
+	"strings"
 
-func New() *PhoneProvider {
-	return &PhoneProvider{}
+	"github.com/fahmibaswara/auth"
+	"github.com/fahmibaswara/auth/claims"
+)
+
+// Config phone provider config
+type Config struct {
+	TokenConfirm     func(*auth.Context) error
+	SendTokenHandler func(phonenumber string, context *auth.Context, claims *claims.Claims, currentUser interface{}) error
+	TokenMessage     string
+
+	AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
+	RegisterHandler  func(*auth.Context) (*claims.Claims, error)
 }
 
-// PhoneProvider provide login with phone method
-type PhoneProvider struct {
+// Provider provide login with phone method
+type Provider struct {
+	*Config
+}
+
+// New initialize phone provider
+func New(config *Config) *Provider {
+	if config == nil {
+		config = &Config{}
+	}
+
+	provider := &Provider{Config: config}
+
+	if config.TokenConfirm == nil {
+		config.TokenConfirm = DefaultTokenConfirmation
+	}
+
+	if config.SendTokenHandler == nil {
+		config.SendTokenHandler = DefaultSendTokenHandler
+	}
+
+	if config.TokenMessage == "" {
+		config.TokenMessage = DefaultTokenMessage
+	}
+
+	if config.AuthorizeHandler == nil {
+		config.AuthorizeHandler = DefaultAuthorizeHandler
+	}
+
+	if config.RegisterHandler == nil {
+		config.RegisterHandler = DefaultRegisterHandler
+	}
+
+	return provider
 }
 
 // GetName return provider name
-func (PhoneProvider) GetName() string {
+func (Provider) GetName() string {
 	return "phone"
 }
 
 // ConfigAuth config auth
-func (PhoneProvider) ConfigAuth(*auth.Auth) {
+func (provider Provider) ConfigAuth(auth *auth.Auth) {
+	auth.Render.RegisterViewPath("github.com/fahmibaswara/auth/providers/phone/views")
 }
 
 // Login implemented login with phone provider
-func (PhoneProvider) Login(context *auth.Context) {
+func (provider Provider) Login(context *auth.Context) {
+	DefaultLoginFormHandler(context, provider.AuthorizeHandler)
 }
 
 // Logout implemented logout with phone provider
-func (PhoneProvider) Logout(context *auth.Context) {
+func (provider Provider) Logout(context *auth.Context) {
+	context.Auth.LogoutHandler(context)
 }
 
 // Register implemented register with phone provider
-func (PhoneProvider) Register(context *auth.Context) {
+func (provider Provider) Register(context *auth.Context) {
+	DefaultRegisterFormHandler(context, provider.RegisterHandler)
 }
 
-// Callback implement Callback with phone provider
-func (PhoneProvider) Callback(*auth.Context) {
+// Callback implement Callback with password provider
+func (provider Provider) Callback(context *auth.Context) {
 }
 
 // ServeHTTP implement ServeHTTP with phone provider
-func (PhoneProvider) ServeHTTP(*auth.Context) {
+func (provider Provider) ServeHTTP(context *auth.Context) {
+	var (
+		req     = context.Request
+		reqPath = strings.TrimPrefix(req.URL.Path, context.Auth.URLPrefix)
+		paths   = strings.Split(reqPath, "/")
+	)
+
+	if len(paths) >= 2 {
+		switch paths[1] {
+		case "new":
+			// render change password page
+			context.Auth.Config.Render.Execute("auth/phone/new", context, context.Request, context.Writer)
+			break
+		case "confirmation":
+			break
+		}
+	}
+
+	return
 }
