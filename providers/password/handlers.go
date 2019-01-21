@@ -94,6 +94,7 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 			"provider":           authInfo.Provider,
 			"uid":                authInfo.UID,
 			"encrypted_password": authInfo.EncryptedPassword,
+			"user_id":            authInfo.UserID,
 		}).FirstOrCreate(authIdentity).Error; err == nil {
 			if provider.Config.Confirmable {
 				context.SessionStorer.Flash(context.Writer, req, session.Message{Message: ConfirmFlashMessage, Type: "success"})

@@ -4,6 +4,7 @@ package auth
 type Schema struct {
 	Provider string
 	UID      string
+	Role     string
 
 	Name      string
 	Email     string
