@@ -28,6 +28,14 @@ type SMSSender interface {
 	Send(destination string, content string) error
 }
 
+type DefaultSMSSender struct {
+}
+
+func (DefaultSMSSender) Send(destination string, content string) error {
+	fmt.Println("Log SMS: sends '" + content + "' to " + destination)
+	return nil
+}
+
 // Config auth config
 type Config struct {
 	// Default Database, which will be used in Auth when do CRUD, you can change a request's DB isntance by setting request Context's value, refer https://github.com/fahmibaswara/auth/blob/master/utils.go#L32
@@ -47,6 +55,8 @@ type Config struct {
 	Mailer *mailer.Mailer
 	// SMS Sender, by default, it will print email into console, you need to configure it to send real one
 	SMSSender SMSSender
+	// UserToken a model used to save token that generated for authentication via Phone, https://github.com/fahmibaswara/auth/blob/master/auth_identity/auth_identity.go is the default implemention
+	UserTokenModel interface{}
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer UserStorerInterface
 	// SessionStorer is an interface that defined how to encode/validate/save/destroy session data and flash messages between requests, Auth provides a default method do the job, to use the default value, don't forgot to mount SessionManager's middleware into your router to save session data correctly. refer [session](https://github.com/qor/session) for more details
@@ -78,6 +88,10 @@ func New(config *Config) *Auth {
 		config.AuthIdentityModel = &auth_identity.AuthIdentity{}
 	}
 
+	if config.UserTokenModel == nil {
+		config.UserTokenModel = &auth_identity.AuthToken{}
+	}
+
 	if config.Render == nil {
 		config.Render = render.New(nil)
 	}
@@ -86,6 +100,10 @@ func New(config *Config) *Auth {
 		config.Mailer = mailer.New(&mailer.Config{
 			Sender: logger.New(&logger.Config{}),
 		})
+	}
+
+	if config.SMSSender == nil {
+		config.SMSSender = &DefaultSMSSender{}
 	}
 
 	if config.UserStorer == nil {

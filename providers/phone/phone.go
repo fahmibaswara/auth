@@ -5,12 +5,13 @@ import (
 
 	"github.com/fahmibaswara/auth"
 	"github.com/fahmibaswara/auth/claims"
+	"github.com/jinzhu/gorm"
 )
 
 // Config phone provider config
 type Config struct {
-	TokenConfirm     func(*auth.Context) error
-	SendTokenHandler func(phonenumber string, context *auth.Context, claims *claims.Claims, currentUser interface{}) error
+	TokenConfirm     func(*auth.Context) (*claims.Claims, error)
+	SendTokenHandler func(phonenumber string, context *auth.Context, DB *gorm.DB) error
 	TokenMessage     string
 
 	AuthorizeHandler func(*auth.Context) (*claims.Claims, error)
