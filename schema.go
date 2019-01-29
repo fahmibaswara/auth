@@ -6,7 +6,6 @@ type Schema struct {
 	UID      string
 	Role     string
 
-	Role       string
 	IsApproved string
 	Name       string
 	Email      string
