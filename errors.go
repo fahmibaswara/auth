@@ -3,7 +3,7 @@ package auth
 import "errors"
 
 var (
-	// ErrAlready registered error
+	// ErrAlreadyRegistered registered error
 	ErrAlreadyRegistered = errors.New("Email already registered")
 	// ErrInvalidPassword invalid password error
 	ErrInvalidPassword = errors.New("invalid password")

@@ -6,14 +6,16 @@ type Schema struct {
 	UID      string
 	Role     string
 
-	Name      string
-	Email     string
-	FirstName string
-	LastName  string
-	Location  string
-	Image     string
-	Phone     string
-	URL       string
+	Role       string
+	IsApproved string
+	Name       string
+	Email      string
+	FirstName  string
+	LastName   string
+	Location   string
+	Image      string
+	Phone      string
+	URL        string
 
 	RawInfo interface{}
 }

@@ -52,7 +52,7 @@ var DefaultLoginHandler = func(context *Context, authorize func(*Context) (*clai
 	}).Respond(context.Request)
 }
 
-// DefaultRegisterHandler default register behaviour
+// DefaultRegisterHandler default register b	ehaviour
 var DefaultRegisterHandler = func(context *Context, register func(*Context) (*claims.Claims, error)) {
 	var (
 		req         = context.Request
