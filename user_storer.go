@@ -50,9 +50,11 @@ func (UserStorer) Get(Claims *claims.Claims, context *Context) (user interface{}
 			if authBasicInfo, ok := authIdentity.(interface {
 				ToClaims() *claims.Claims
 			}); ok {
-				currentUser := reflect.New(utils.ModelType(context.Auth.Config.UserModel)).Interface()
-				if err = tx.First(currentUser, authBasicInfo.ToClaims().UserID).Error; err == nil {
-					return currentUser, nil
+				if authBasicInfo.ToClaims().UserID != "" {
+					currentUser := reflect.New(utils.ModelType(context.Auth.Config.UserModel)).Interface()
+					if err = tx.First(currentUser, authBasicInfo.ToClaims().UserID).Error; err == nil {
+						return currentUser, nil
+					}
 				}
 				return nil, ErrInvalidAccount
 			}
