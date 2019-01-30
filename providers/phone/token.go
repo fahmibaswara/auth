@@ -66,10 +66,13 @@ var DefaultCheckToken = func(phonenumber string, token string, context *auth.Con
 		return nil, ErrTokenExpired
 	}
 
+	authInfo.Provider = provider.GetName()
+	authInfo.UID = phonenumber
+
 	if DB.Model(context.Auth.AuthIdentityModel).Where(
 		map[string]interface{}{
-			"provider": provider.GetName(),
-			"uid":      phonenumber,
+			"provider": authInfo.Provider,
+			"uid":      authInfo.UID,
 		}).Scan(&authInfo).RecordNotFound() {
 		return nil, auth.ErrInvalidAccount
 	}

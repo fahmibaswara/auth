@@ -96,9 +96,8 @@ var DefaultLoginFormHandler = func(context *auth.Context, authorize func(*auth.C
 		claims, err = authorize(context)
 	)
 
-	req.ParseForm()
-
 	if err == nil && claims != nil {
+		req.ParseForm()
 		context.SessionStorer.Flash(w, req, session.Message{Message: template.HTML(req.Form.Get("phone_number")), Type: "phone_number"})
 		respondAfterRequestToken(claims, context)
 		return
@@ -151,6 +150,8 @@ var DefaultRegisterFormHandler = func(context *auth.Context, register func(*auth
 	)
 
 	if err == nil && claims != nil {
+		req.ParseForm()
+		context.SessionStorer.Flash(w, req, session.Message{Message: template.HTML(req.Form.Get("phone_number")), Type: "phone_number"})
 		respondAfterRequestToken(claims, context)
 		return
 	}
@@ -189,35 +190,32 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 	authInfo.UID = strings.TrimSpace(req.Form.Get("phone_number"))
 
 	currentUser := reflect.New(utils.ModelType(context.Auth.Config.UserModel)).Interface()
-	if tx.Model(context.Auth.Config.UserModel).Where(map[string]interface{}{
+	if !tx.Model(context.Auth.Config.UserModel).Where(map[string]interface{}{
 		"email": strings.TrimSpace(req.Form.Get("login")),
 	}).First(currentUser).RecordNotFound() {
-		schema.Provider = authInfo.Provider
-		schema.UID = authInfo.UID
-		schema.Email = strings.TrimSpace(req.Form.Get("login"))
-		schema.RawInfo = req
-
-		currentUser, authInfo.UserID, err = context.Auth.UserStorer.Save(&schema, context)
-		if err != nil {
-			return nil, err
-		}
+		return nil, auth.ErrAlreadyRegistered
 	}
 
-	if tx.Model(context.Auth.AuthIdentityModel).Where(map[string]interface{}{
-		"provider": authInfo.Provider,
-		"uid":      authInfo.UID,
-		"user_id":  authInfo.UserID,
-	}).Scan(&authInfo).RecordNotFound() {
-		// create auth identity
-		authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
-		if err = tx.Where(map[string]interface{}{
-			"provider": authInfo.Provider,
-			"uid":      authInfo.UID,
-		}).FirstOrCreate(authIdentity).Error; err != nil {
-			return nil, auth.ErrInvalidAccount
-		}
-	} else {
+	schema.Provider = authInfo.Provider
+	schema.UID = authInfo.UID
+	schema.Name = strings.TrimSpace(req.Form.Get("name"))
+	schema.Email = strings.TrimSpace(req.Form.Get("login"))
+	schema.RawInfo = req
 
+	currentUser, authInfo.UserID, err = context.Auth.UserStorer.Save(&schema, context)
+	if err != nil {
+		return nil, err
+	}
+
+	// create auth identity
+	authIdentity := reflect.New(utils.ModelType(context.Auth.Config.AuthIdentityModel)).Interface()
+	if err = tx.Where(map[string]interface{}{
+		"provider":           authInfo.Provider,
+		"uid":                authInfo.UID,
+		"encrypted_password": authInfo.EncryptedPassword,
+		"user_id":            authInfo.UserID,
+	}).FirstOrCreate(authIdentity).Error; err != nil {
+		return nil, err
 	}
 
 	if err = provider.Config.SendTokenHandler(authInfo.UID, context, tx); err != nil {
