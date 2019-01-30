@@ -18,10 +18,13 @@ type UserStorerInterface interface {
 
 // UserStorer default user storer
 type UserStorer struct {
+	temp struct {
+		currentUser interface{}
+	}
 }
 
 // Get defined how to get user with user id
-func (UserStorer) Get(Claims *claims.Claims, context *Context) (user interface{}, err error) {
+func (u UserStorer) Get(Claims *claims.Claims, context *Context) (user interface{}, err error) {
 	var tx = context.Auth.GetDB(context.Request)
 
 	if context.Auth.Config.UserModel != nil {
