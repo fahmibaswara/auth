@@ -32,9 +32,9 @@ var DefaultAuthorizeHandler = func(context *auth.Context) (*claims.Claims, error
 		return nil, auth.ErrInvalidAccount
 	}
 
-	if provider.Config.Confirmable && authInfo.ConfirmedAt == nil {
+	if context.Auth.Config.Confirmable && authInfo.ConfirmedAt == nil {
 		currentUser, _ := context.Auth.UserStorer.Get(authInfo.ToClaims(), context)
-		provider.Config.ConfirmMailer(authInfo.UID, context, authInfo.ToClaims(), currentUser)
+		context.Auth.Config.ConfirmMailer(authInfo.UID, context, authInfo.ToClaims(), currentUser)
 
 		return nil, ErrUnconfirmed
 	}
@@ -96,9 +96,9 @@ var DefaultRegisterHandler = func(context *auth.Context) (*claims.Claims, error)
 			"encrypted_password": authInfo.EncryptedPassword,
 			"user_id":            authInfo.UserID,
 		}).FirstOrCreate(authIdentity).Error; err == nil {
-			if provider.Config.Confirmable {
+			if context.Auth.Config.Confirmable {
 				context.SessionStorer.Flash(context.Writer, req, session.Message{Message: ConfirmFlashMessage, Type: "success"})
-				err = provider.Config.ConfirmMailer(schema.Email, context, authInfo.ToClaims(), currentUser)
+				err = context.Auth.Config.ConfirmMailer(schema.Email, context, authInfo.ToClaims(), currentUser)
 			}
 
 			return authInfo.ToClaims(), err

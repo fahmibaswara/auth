@@ -1,6 +1,7 @@
 package phone
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 	"reflect"
@@ -17,6 +18,10 @@ import (
 var (
 	//DefaultTokenMessage Message for Message
 	DefaultTokenMessage = "your code is {token}"
+	//ErrPhoneNumberRequired Error Message Phone Number Required
+	ErrPhoneNumberRequired = errors.New("Phone Number Required")
+	//ErrPhoneNotFound Error Message Phone Number Required
+	ErrPhoneNotFound = errors.New("Sorry, it seems your phone number havent registered yet")
 )
 
 func respondAfterLogged(claims *claims.Claims, context *auth.Context) {
@@ -41,7 +46,7 @@ var DefaultConfirmationHandler = func(context *auth.Context) (*claims.Claims, er
 
 	req.ParseForm()
 	if req.Form.Get("phone_number") == "" {
-		return nil, auth.ErrInvalidAccount
+		return nil, ErrPhoneNumberRequired
 	}
 
 	if req.Form.Get("token") == "" {
@@ -131,7 +136,7 @@ var DefaultAuthorizeHandler = func(context *auth.Context) (*claims.Claims, error
 			"provider": authInfo.Provider,
 			"uid":      authInfo.UID,
 		}).Scan(&authInfo).RecordNotFound() {
-		return nil, auth.ErrInvalidAccount
+		return nil, ErrPhoneNotFound
 	}
 
 	if err := provider.Config.SendTokenHandler(authInfo.UID, context, tx); err != nil {

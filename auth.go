@@ -28,9 +28,11 @@ type SMSSender interface {
 	Send(destination string, content string) error
 }
 
+// DefaultSMSSender SMS will be sent to Log
 type DefaultSMSSender struct {
 }
 
+// Send Will print SMS to Log
 func (DefaultSMSSender) Send(destination string, content string) error {
 	fmt.Println("Log SMS: sends '" + content + "' to " + destination)
 	return nil
@@ -53,9 +55,14 @@ type Config struct {
 	Render *render.Render
 	// Auth is using [Mailer](https://github.com/qor/mailer) to send email, by default, it will print email into console, you need to configure it to send real one
 	Mailer *mailer.Mailer
+
+	Confirmable    bool
+	ConfirmMailer  func(email string, context *Context, claims *claims.Claims, currentUser interface{}) error
+	ConfirmHandler func(*Context) error
+	WelcomeMailer  func(email string, context *Context, claims *claims.Claims, currentUser interface{}) error
 	// SMS Sender, by default, it will print email into console, you need to configure it to send real one
 	SMSSender SMSSender
-	// UserToken a model used to save token that generated for authentication via Phone, https://github.com/fahmibaswara/auth/blob/master/auth_identity/auth_identity.go is the default implemention
+	// UserToken a model used to save token that generated for authentication via Phone, https://github.com/fahmibaswara/auth/blob/master/auth_identity/auth_token.go is the default implemention
 	UserTokenModel interface{}
 	// UserStorer is an interface that defined how to get/save user, Auth provides a default one based on AuthIdentityModel, UserModel's definition
 	UserStorer UserStorerInterface
@@ -100,6 +107,18 @@ func New(config *Config) *Auth {
 		config.Mailer = mailer.New(&mailer.Config{
 			Sender: logger.New(&logger.Config{}),
 		})
+	}
+
+	if config.ConfirmMailer == nil {
+		config.ConfirmMailer = DefaultConfirmationMailer
+	}
+
+	if config.ConfirmHandler == nil {
+		config.ConfirmHandler = DefaultConfirmHandler
+	}
+
+	if config.WelcomeMailer == nil {
+		config.WelcomeMailer = DefaultWelcomeMailer
 	}
 
 	if config.SMSSender == nil {

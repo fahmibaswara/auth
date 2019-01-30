@@ -15,10 +15,6 @@ import (
 
 // Config password config
 type Config struct {
-	Confirmable    bool
-	ConfirmMailer  func(email string, context *auth.Context, claims *claims.Claims, currentUser interface{}) error
-	ConfirmHandler func(*auth.Context) error
-
 	ResetPasswordMailer    func(email string, context *auth.Context, claims *claims.Claims, currentUser interface{}) error
 	ResetPasswordHandler   func(*auth.Context) error
 	RecoverPasswordHandler func(*auth.Context) error
@@ -39,14 +35,6 @@ func New(config *Config) *Provider {
 	}
 
 	provider := &Provider{Config: config}
-
-	if config.ConfirmMailer == nil {
-		config.ConfirmMailer = DefaultConfirmationMailer
-	}
-
-	if config.ConfirmHandler == nil {
-		config.ConfirmHandler = DefaultConfirmHandler
-	}
 
 	if config.ResetPasswordMailer == nil {
 		config.ResetPasswordMailer = DefaultResetPasswordMailer
@@ -145,7 +133,7 @@ func (provider Provider) ServeHTTP(context *auth.Context) {
 
 					if err == nil {
 						if currentUser, err = context.Auth.UserStorer.Get(authInfo.ToClaims(), context); err == nil {
-							err = provider.Config.ConfirmMailer(authInfo.UID, context, authInfo.ToClaims(), currentUser)
+							err = context.Auth.Config.ConfirmMailer(authInfo.UID, context, authInfo.ToClaims(), currentUser)
 						}
 					}
 
@@ -163,7 +151,7 @@ func (provider Provider) ServeHTTP(context *auth.Context) {
 			context.Auth.Config.Render.Execute("auth/confirmation/new", context, context.Request, context.Writer)
 		case "confirm":
 			// confirm user
-			err := provider.ConfirmHandler(context)
+			err := context.Auth.ConfirmHandler(context)
 			if err != nil {
 				context.SessionStorer.Flash(context.Writer, req, session.Message{Message: template.HTML(err.Error()), Type: "error"})
 				context.Auth.Redirector.Redirect(context.Writer, context.Request, "confirm_failed")

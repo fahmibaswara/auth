@@ -114,7 +114,7 @@ var DefaultResetPasswordHandler = func(context *auth.Context) error {
 
 			if authInfo.EncryptedPassword, err = provider.Encryptor.Digest(strings.TrimSpace(context.Request.Form.Get("new_password"))); err == nil {
 				// Confirm account after reset password, as user already click a link from email
-				if provider.Config.Confirmable && authInfo.ConfirmedAt == nil {
+				if context.Auth.Config.Confirmable && authInfo.ConfirmedAt == nil {
 					now := time.Now()
 					authInfo.ConfirmedAt = &now
 				}
